@@ -1,9 +1,9 @@
 # React + Vite
 
-getting started
-*install node V22.16.0
-*delete node_modules and package-lock.json
-*run npm install
+getting started</br>
+*install node V22.16.0</br>
+*delete node_modules and package-lock.json</br>
+*run npm install</br>
 
-start app
+start app</br>
 *run npm run dev
