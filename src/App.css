@@ -6,6 +6,11 @@
   min-height: 100vh;
 }
 
+.timer {
+  font-size: 2rem;
+  margin: 1rem;
+}
+
 .prompt-box {
   background: white;
   color: black;
@@ -30,6 +35,10 @@ button {
   font-size: 1rem;
   cursor: pointer;
   border-radius: 5px;
+}
+
+button:disabled {
+  background-color: #aaa;
 }
 
 button:hover {
