@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import axios from "axios";
+import { loginUrl } from "./spotifyConfig";
 import './App.css';
 
 //array of prompts 
@@ -16,11 +18,14 @@ const prompts = [
 ];
 
 function App() {
+  const [token, setToken] = useState("");
+  const [searchKey, setSearchKey] = useState("");
+  const [tracks, setTracks] = useState([]);
   const [timeLeft, setTimeLeft] = useState(10);
   const [prompt, setPrompt] = useState('');
   const [running, setRunning] = useState(false);
 
-  //countdown timer
+ //count down timer
   useEffect(() => {
     let timer;
     if (running && timeLeft > 0) { //time greater than 0 continue count down
@@ -45,6 +50,48 @@ function App() {
     setRunning(true);
   };
 
+  //check for token in URL
+  useEffect(() => {
+    const hash = window.location.hash;
+    let _token = window.localStorage.getItem("token");
+
+    if (!_token && hash) {
+      _token = hash.substring(1).split("&").find(elem => elem.startsWith("access_token")).split("=")[1];
+      window.location.hash = "";
+      window.localStorage.setItem("token", _token);
+    }
+
+    setToken(_token);
+  }, []);
+
+  const searchTracks = async (e) => {
+    e.preventDefault();
+    const { data } = await axios.get("https://api.spotify.com/v1/search", {
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      params: {
+        q: searchKey,
+        type: "track"
+      }
+    });
+    setTracks(data.tracks.items);
+  };
+
+  const renderTracks = () => {
+    return tracks.map(track => (
+      <div key={track.id} className="track">
+        <img src={track.album.images[0]?.url} alt={track.name} />
+        <p><strong>{track.name}</strong> - {track.artists[0].name}</p>
+        {track.preview_url ? (
+          <audio controls src={track.preview_url} />
+        ) : (
+          <p>No preview available</p>
+        )}
+      </div>
+    ));
+  };
+
   return (
     <div className="App">
       <div className="timer">Time left: {timeLeft}s</div>
@@ -53,7 +100,23 @@ function App() {
        <button onClick={startTimer}>
         {running ? "Running..." : "Start Round"}
       </button>
-      <div className="spotify">
+
+      {!token ? (
+        <a className="login-btn" href={loginUrl}>Login with Spotify</a>
+      ) : (
+        <form onSubmit={searchTracks}>
+          <input
+            type="text"
+            onChange={(e) => setSearchKey(e.target.value)}
+            placeholder="Search for a song"
+          />
+          <button type="submit">Search</button>
+        </form>
+      )}
+      <div className="track-list">
+        {renderTracks()}
+      </div>
+      {/* <div className="spotify">
         <iframe 
           src="https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M" 
           width="300" 
@@ -62,7 +125,7 @@ function App() {
           allowtransparency="true" 
           allow="encrypted-media">
         </iframe>
-      </div>
+      </div> */}
     </div>
   );
 }
